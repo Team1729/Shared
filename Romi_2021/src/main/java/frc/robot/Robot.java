@@ -5,14 +5,10 @@
 package frc.robot;
 
 import edu.wpi.first.wpilibj.TimedRobot;
-import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
-import edu.wpi.first.wpilibj2.command.Subsystem;
-import frc.robot.subsystems.RomiDrivetrain;
-import frc.robot.subsystems.RomiGyro;
-import frc.robot.commands.*;
+import frc.robot.subsystems.Drivetrain;
 
 /**
  * The VM is configured to automatically run this class, and to call the functions corresponding to
@@ -21,14 +17,8 @@ import frc.robot.commands.*;
  * project.
  */
 public class Robot extends TimedRobot {
-  private Command Auto1;
   private Command m_autonomousCommand;
-
   private RobotContainer m_robotContainer;
-  public static RomiDrivetrain Drivetrain;
-  public static RomiGyro RomiGyro;
-
-  SendableChooser<Command> Chooser =  new SendableChooser<>();
 
   /**
    * This function is run when the robot is first started up and should be used for any
@@ -39,17 +29,9 @@ public class Robot extends TimedRobot {
     // Instantiate our RobotContainer.  This will perform all our button bindings, and put our
     // autonomous chooser on the dashboard.
     m_robotContainer = new RobotContainer();
-    Drivetrain = new RomiDrivetrain();
-    RomiGyro = new RomiGyro();
-
-    Chooser.addOption("Auto1", new Auto1());
-    Chooser.addOption("Auto2", new Auto2());
-    Chooser.setDefaultOption("Auto3", new Auto3());
-    SmartDashboard.putData("Auto Select", Chooser); 
-
   }
 
-  /**s
+  /**
    * This function is called every robot packet, no matter the mode. Use this for items like
    * diagnostics that you want ran during disabled, autonomous, teleoperated and test.
    *
@@ -67,20 +49,18 @@ public class Robot extends TimedRobot {
 
   /** This function is called once each time the robot enters Disabled mode. */
   @Override
-  public void disabledInit() {
- 
-  }
+  public void disabledInit() {}
 
   @Override
-  public void disabledPeriodic() {
-    
-  }
+  public void disabledPeriodic() {}
 
   /** This autonomous runs the autonomous command selected by your {@link RobotContainer} class. */
   @Override
   public void autonomousInit() {
-    //m_autonomousCommand = m_robotContainer.getAutonomousCommand();
-    m_autonomousCommand = Chooser.getSelected();
+
+    // Get selected routine from the SmartDashboard
+    m_autonomousCommand = m_robotContainer.getAutonomousCommand();
+
     // schedule the autonomous command (example)
     if (m_autonomousCommand != null) {
       m_autonomousCommand.schedule();
@@ -90,26 +70,22 @@ public class Robot extends TimedRobot {
   /** This function is called periodically during autonomous. */
   @Override
   public void autonomousPeriodic() {
-      //new ForwardDistance(2.5, 0.5).schedule();
   }
 
   @Override
   public void teleopInit() {
-    // This makes sure that the autonomous stops running when
-    // teleop starts running. If you want the autonomous to
-    // continue until interrupted by another command, remove
+    // This makes sure that the autonomous stops running which will
+    // use the default command which is ArcadeDrive. If you want the autonomous
+    // to continue until interrupted by another command, remove
     // this line or comment it out.
     if (m_autonomousCommand != null) {
       m_autonomousCommand.cancel();
     }
-  
   }
 
   /** This function is called periodically during operator control. */
   @Override
-  public void teleopPeriodic() {
-    new Driver().schedule();
-  }
+  public void teleopPeriodic() {}
 
   @Override
   public void testInit() {

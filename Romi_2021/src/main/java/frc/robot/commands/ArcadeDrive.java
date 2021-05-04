@@ -5,6 +5,7 @@
 package frc.robot.commands;
 
 import frc.robot.subsystems.Drivetrain;
+import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj2.command.CommandBase;
 import java.util.function.Supplier;
 
@@ -13,6 +14,7 @@ public class ArcadeDrive extends CommandBase {
   private final Supplier<Double> m_xaxisSpeedSupplier;
   private final Supplier<Double> m_zaxisRotateSupplier;
 
+  public Joystick Driver = new Joystick(0);
   /**
    * Creates a new ArcadeDrive. This command will drive your robot according to the speed supplier
    * lambdas. This command does not terminate.
@@ -38,7 +40,8 @@ public class ArcadeDrive extends CommandBase {
   // Called every time the scheduler runs while the command is scheduled.
   @Override
   public void execute() {
-    m_drivetrain.arcadeDrive(m_xaxisSpeedSupplier.get(), m_zaxisRotateSupplier.get());
+    //m_drivetrain.arcadeDrive(m_xaxisSpeedSupplier.get(), m_zaxisRotateSupplier.get());
+    m_drivetrain.Arcade(-Driver.getX(), -Driver.getY());
   }
 
   // Called once the command ends or is interrupted.

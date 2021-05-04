@@ -19,13 +19,8 @@ import edu.wpi.first.wpilibj.controller.SimpleMotorFeedforward;
 import edu.wpi.first.wpilibj.geometry.Pose2d;
 import edu.wpi.first.wpilibj.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.geometry.Translation2d;
-import frc.robot.Constants.AutoConstants;
-import frc.robot.Constants.DriveConstants;
-import frc.robot.commands.ArcadeDrive;
-import frc.robot.commands.AutonomousDistance;
-import frc.robot.commands.AutonomousTime;
-import frc.robot.subsystems.Drivetrain;
-import frc.robot.subsystems.OnBoardIO;
+import frc.robot.commands.*;
+import frc.robot.subsystems.*;
 import frc.robot.subsystems.OnBoardIO.ChannelMode;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -40,6 +35,7 @@ import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.PrintCommand;
 import edu.wpi.first.wpilibj2.command.RamseteCommand;
 import edu.wpi.first.wpilibj2.command.button.Button;
+import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 
 /**
  * This class is where the bulk of the robot should be declared. Since Command-based is a
@@ -49,8 +45,8 @@ import edu.wpi.first.wpilibj2.command.button.Button;
  */
 public class RobotContainer {
   // The robot's subsystems and commands are defined here...
-  private final Drivetrain m_drivetrain = new Drivetrain();
   private final OnBoardIO m_onboardIO = new OnBoardIO(ChannelMode.INPUT, ChannelMode.INPUT);
+  public final static Drivetrain m_drivetrain = new Drivetrain();
 
   // Assumes a gamepad plugged into channnel 0
   private final Joystick m_controller = new Joystick(0);
@@ -84,71 +80,10 @@ public class RobotContainer {
    * 
    * @return A SequentialCommand that sets up and executes a trajectory following Ramsete command
    */
-  Trajectory exampleTrajectory = new Trajectory();
 
-  private Command generateRamseteCommand() {
-    var autoVoltageConstraint =
-        new DifferentialDriveVoltageConstraint(
-            new SimpleMotorFeedforward(DriveConstants.ksVolts, 
-                                       DriveConstants.kvVoltSecondsPerMeter, 
-                                       DriveConstants.kaVoltSecondsSquaredPerMeter),
-            DriveConstants.kDriveKinematics,
-            10);
+   static Trajectory exampleTrajectory;
 
-    TrajectoryConfig config =
-        new TrajectoryConfig(AutoConstants.kMaxSpeedMetersPerSecond, 
-                             AutoConstants.kMaxAccelerationMetersPerSecondSquared)
-            .setKinematics(DriveConstants.kDriveKinematics)
-            .addConstraint(autoVoltageConstraint);
 
-    // This trajectory can be modified to suit your purposes
-    // Note that all coordinates are in meters, and follow NWU conventions.
-    // If you would like to specify coordinates in inches (which might be easier
-    // to deal with for the Romi), you can use the Units.inchesToMeters() method
-    Trajectory exampleTrajectory = TrajectoryGenerator.generateTrajectory(
-      // Start at the origin facing the +X direction
-      new Pose2d(0, 0, new Rotation2d(0)),
-      // Pass through these two interior waypoints, making an 's' curve path
-      List.of(
-          new Translation2d(Units.inchesToMeters(18), Units.inchesToMeters(15)),
-          //new Translation2d(Units.inchesToMeters(33), Units.inchesToMeters(12)),
-          new Translation2d(Units.inchesToMeters(48), Units.inchesToMeters(15)),
-          new Translation2d(Units.inchesToMeters(64), Units.inchesToMeters(-1)),
-          new Translation2d(Units.inchesToMeters(77), Units.inchesToMeters(10)),
-          new Translation2d(Units.inchesToMeters(67), Units.inchesToMeters(15)),
-          new Translation2d(Units.inchesToMeters(62), Units.inchesToMeters(8)),
-          new Translation2d(Units.inchesToMeters(30), Units.inchesToMeters(9)),
-          new Translation2d(Units.inchesToMeters(22), Units.inchesToMeters(23))
-
-      ),
-      // End 3 meters straight ahead of where we started, facing forward
-      new Pose2d(0, Units.inchesToMeters(15), new Rotation2d(60)),
-      // Pass config
-      config
-  );
-    RamseteCommand ramseteCommand = new RamseteCommand(
-        exampleTrajectory,
-        m_drivetrain::getPose,
-        new RamseteController(AutoConstants.kRamseteB, AutoConstants.kRamseteZeta),
-        new SimpleMotorFeedforward(DriveConstants.ksVolts, DriveConstants.kvVoltSecondsPerMeter, DriveConstants.kaVoltSecondsSquaredPerMeter),
-        DriveConstants.kDriveKinematics,
-        m_drivetrain::getWheelSpeeds,
-        new PIDController(DriveConstants.kPDriveVel, 0, 0),
-        new PIDController(DriveConstants.kPDriveVel, 0, 0),
-        m_drivetrain::tankDriveVolts,
-        m_drivetrain);
-
-    m_drivetrain.resetOdometry(exampleTrajectory.getInitialPose());
-
-    // Set up a sequence of commands
-    // First, we want to reset the drivetrain odometry
-    return new InstantCommand(() -> m_drivetrain.resetOdometry(exampleTrajectory.getInitialPose()), m_drivetrain)
-        // next, we run the actual ramsete command
-        .andThen(ramseteCommand)
-
-        // Finally, we make sure that the robot stops
-        .andThen(new InstantCommand(() -> m_drivetrain.tankDriveVolts(0, 0), m_drivetrain));
-  } 
 
   /**
    * Use this method to define your button->command mappings. Buttons can be created by
@@ -168,11 +103,16 @@ public class RobotContainer {
         .whenInactive(new PrintCommand("Button A Released"));
 
     // Setup SmartDashboard options
-    m_chooser.setDefaultOption("Ramsete Trajectory", generateRamseteCommand());
+    m_chooser.setDefaultOption("Frantic Fetch Rountine", new FranticFetch());
     m_chooser.addOption("Auto Routine Distance", new AutonomousDistance(m_drivetrain));
     m_chooser.addOption("Auto Routine Time", new AutonomousTime(m_drivetrain));
     
     SmartDashboard.putData(m_chooser);
+
+    // Button Bindings
+
+    new JoystickButton(m_controller, 1).whileHeld(new Test(), false);
+
   }
 
   /**
